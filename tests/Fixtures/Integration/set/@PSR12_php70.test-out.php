@@ -6,4 +6,6 @@ function foo(): void
 {
 }
 
-$class = new class() {};
+$class = new class {};
+
+$class = new class(TEST) {};
