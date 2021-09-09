@@ -1176,6 +1176,18 @@ List of Available Rules
 
    All instances created with new keyword must be followed by braces.
 
+   Configuration options:
+
+   - | ``named_class``
+     | Whether named classes should be followed by parentheses.
+     | Allowed types: ``bool``
+     | Default value: ``true``
+   - | ``anonymous_class``
+     | Whether anonymous classes should be followed by parentheses.
+     | Allowed types: ``bool``
+     | Default value: ``true``
+
+
    Part of rule sets `@PSR12 <./ruleSets/PSR12.rst>`_ `@PhpCsFixer <./ruleSets/PhpCsFixer.rst>`_ `@Symfony <./ruleSets/Symfony.rst>`_
 
    `Source PhpCsFixer\\Fixer\\Operator\\NewWithBracesFixer <./../src/Fixer/Operator/NewWithBracesFixer.php>`_
