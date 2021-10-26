@@ -182,6 +182,19 @@ $var2 = some_function(
                 '<?php new Foo($a=10 , $b=20 ,          $c=30);',
                 ['keep_multiple_spaces_after_comma' => true],
             ],
+            'test anonymous class constructor call' => [
+                '<?php new class ($a=10, $b=20, $this->foo(), $c=30) {};',
+                '<?php new class ($a=10,$b=20 ,$this->foo() ,$c=30) {};',
+            ],
+            'test anonymous class constructor call with multiple spaces' => [
+                '<?php new class ($a=10, $b=20, $c=30) extends Foo {};',
+                '<?php new class ($a=10 , $b=20 ,          $c=30) extends Foo {};',
+            ],
+            'test anonymous class constructor call with multiple spaces (kmsac)' => [
+                '<?php new class ($a=10, $b=20,          $c=30) {};',
+                '<?php new class ($a=10 , $b=20 ,          $c=30) {};',
+                ['keep_multiple_spaces_after_comma' => true],
+            ],
             'test receiving data in list context with omitted values' => [
                 '<?php list($a, $b, , , $c) = foo();',
                 '<?php list($a, $b,, ,$c) = foo();',
@@ -239,6 +252,20 @@ list(
                     $b=20,
                     $c=30
                 );
+                }',
+            ],
+            'multi line anonymous class constructor call' => [
+                '<?php if (1) {
+                new class (
+                    $a=10,
+                    $b=20,
+                    $c=30
+                ) {};
+                }',
+                '<?php if (1) {
+                new class (
+                    $a=10 ,
+                $b=20,$c=30) {};
                 }',
             ],
             'skip arrays but replace arg methods' => [

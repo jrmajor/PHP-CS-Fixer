@@ -136,7 +136,7 @@ SAMPLE
      */
     protected function applyFix(\SplFileInfo $file, Tokens $tokens): void
     {
-        $expectedTokens = [T_LIST, T_FUNCTION, CT::T_USE_LAMBDA];
+        $expectedTokens = [T_LIST, T_FUNCTION, CT::T_USE_LAMBDA, T_CLASS];
 
         if (\PHP_VERSION_ID >= 70400) {
             $expectedTokens[] = T_FN;
