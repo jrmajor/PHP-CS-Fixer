@@ -45,6 +45,15 @@ Allowed types: ``bool``
 
 Default value: ``false``
 
+``fix_constructor_arguments``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Whether constructor argument list in anonymous classes should be single line.
+
+Allowed types: ``bool``
+
+Default value: ``true``
+
 Examples
 --------
 
@@ -141,6 +150,22 @@ With configuration: ``['space_before_parenthesis' => true]``.
     <?php
    -$foo = new class(){};
    +$foo = new class () {};
+
+Example #6
+~~~~~~~~~~
+
+With configuration: ``['fix_constructor_arguments' => true]``.
+
+.. code-block:: diff
+
+   --- Original
+   +++ New
+    <?php
+   -$foo = new class(
+   -    $bar,
+   -    $baz
+   -) {};
+   +$foo = new class($bar, $baz) {};
 
 Rule sets
 ---------
