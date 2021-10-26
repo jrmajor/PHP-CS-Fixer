@@ -169,6 +169,19 @@ $var2 = some_function(
                 '<?php xyz($a=10,$b=20 ,         $this->foo() ,$c=30);',
                 ['keep_multiple_spaces_after_comma' => true],
             ],
+            'test named class constructor call' => [
+                '<?php new Foo($a=10, $b=20, $this->foo(), $c=30);',
+                '<?php new Foo($a=10,$b=20 ,$this->foo() ,$c=30);',
+            ],
+            'test named class constructor call with multiple spaces' => [
+                '<?php new Foo($a=10, $b=20, $c=30);',
+                '<?php new Foo($a=10 , $b=20 ,          $c=30);',
+            ],
+            'test named class constructor call with multiple spaces (kmsac)' => [
+                '<?php new Foo($a=10, $b=20,          $c=30);',
+                '<?php new Foo($a=10 , $b=20 ,          $c=30);',
+                ['keep_multiple_spaces_after_comma' => true],
+            ],
             'test receiving data in list context with omitted values' => [
                 '<?php list($a, $b, , , $c) = foo();',
                 '<?php list($a, $b,, ,$c) = foo();',
@@ -779,6 +792,33 @@ class Foo {
         $c
     ) {}
 }
+INPUT
+                ,
+                ['on_multiline' => 'ensure_single_line'],
+            ],
+            'ensure_single_line_methods_in_anonymous_class' => [
+                <<<'EXPECTED'
+<?php
+new class {
+    public static function foo1($a, $b, $c) {}
+    private function foo2($a, $b, $c) {}
+};
+EXPECTED
+                ,
+                <<<'INPUT'
+<?php
+new class {
+    public static function foo1(
+        $a,
+        $b,
+        $c
+    ) {}
+    private function foo2(
+        $a,
+        $b,
+        $c
+    ) {}
+};
 INPUT
                 ,
                 ['on_multiline' => 'ensure_single_line'],
