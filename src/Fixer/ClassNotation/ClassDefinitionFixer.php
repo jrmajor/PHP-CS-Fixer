@@ -95,7 +95,7 @@ $foo = new class(){};
                 ),
                 new CodeSample(
                     "<?php\n\$foo = new class(\n    \$bar,\n    \$baz\n) {};\n",
-                    ['fix_constructor_arguments' => true]
+                    ['inline_constructor_arguments' => true]
                 ),
             ]
         );
@@ -155,7 +155,7 @@ $foo = new class(){};
                 ->setAllowedTypes(['bool'])
                 ->setDefault(false)
                 ->getOption(),
-            (new FixerOptionBuilder('fix_constructor_arguments', 'Whether constructor argument list in anonymous classes should be single line.'))
+            (new FixerOptionBuilder('inline_constructor_arguments', 'Whether constructor argument list in anonymous classes should be single line.'))
                 ->setAllowedTypes(['bool'])
                 ->setDefault(true)
                 ->getOption(),
@@ -335,7 +335,7 @@ $foo = new class(){};
     private function makeClassyDefinitionSingleLine(Tokens $tokens, int $startIndex, int $endIndex): void
     {
         for ($i = $endIndex; $i >= $startIndex; --$i) {
-            if (!$this->configuration['fix_constructor_arguments'] && $tokens[$i]->equals(')')) {
+            if (!$this->configuration['inline_constructor_arguments'] && $tokens[$i]->equals(')')) {
                 $i = $tokens->findBlockStart(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $i);
 
                 continue;

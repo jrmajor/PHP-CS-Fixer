@@ -196,7 +196,7 @@ List of Available Rules
      | Whether there should be a single space after the parenthesis of anonymous class (PSR12) or not.
      | Allowed types: ``bool``
      | Default value: ``false``
-   - | ``fix_constructor_arguments``
+   - | ``inline_constructor_arguments``
      | Whether constructor argument list in anonymous classes should be single line.
      | Allowed types: ``bool``
      | Default value: ``true``

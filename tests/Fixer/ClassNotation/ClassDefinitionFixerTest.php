@@ -34,7 +34,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
             'single_item_single_line' => false,
             'single_line' => false,
             'space_before_parenthesis' => false,
-            'fix_constructor_arguments' => true,
+            'inline_constructor_arguments' => true,
         ];
 
         $fixer = new ClassDefinitionFixer();
@@ -103,7 +103,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
     {
         $this->expectException(InvalidFixerConfigurationException::class);
         $this->expectExceptionMessageMatches(
-            '/^\[class_definition\] Invalid configuration: The option "a" does not exist\. Defined options are: "fix_constructor_arguments", "multi_line_extends_each_single_line", "single_item_single_line", "single_line", "space_before_parenthesis"\.$/'
+            '/^\[class_definition\] Invalid configuration: The option "a" does not exist\. Defined options are: "inline_constructor_arguments", "multi_line_extends_each_single_line", "single_item_single_line", "single_line", "space_before_parenthesis"\.$/'
         );
 
         $fixer = new ClassDefinitionFixer();
@@ -157,12 +157,12 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
             [
                 '<?php $a = new class(  ) {};',
                 "<?php \$a = new\n class  (  ){};",
-                ['fix_constructor_arguments' => false],
+                ['inline_constructor_arguments' => false],
             ],
             [
                 '<?php $a = new class( $this->foo() , bar ( $a) ) {};',
                 "<?php \$a = new\n class  ( \$this->foo() , bar ( \$a) ){};",
-                ['fix_constructor_arguments' => false],
+                ['inline_constructor_arguments' => false],
             ],
             [
                 '<?php $a = new class(10, 1, /**/ 2) {};',
@@ -171,7 +171,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
             [
                 '<?php $a = new class(  10, 1,/**/2  ) {};',
                 '<?php $a = new class(  10, 1,/**/2  ){};',
-                ['fix_constructor_arguments' => false],
+                ['inline_constructor_arguments' => false],
             ],
             [
                 '<?php $a = new class(2) {};',
@@ -184,7 +184,7 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
             [
                 '<?php $a = new class(   $this->prop   ) {};',
                 '<?php $a = new class(   $this->prop   ){};',
-                ['fix_constructor_arguments' => false],
+                ['inline_constructor_arguments' => false],
             ],
             [
                 '<?php $a = new class($this->prop, $v[3], 4) {};',
@@ -295,10 +295,10 @@ A#
                 '<?php $z = new class   ()  {};',
                 ['space_before_parenthesis' => true],
             ],
-            'space_before_parenthesis and fix_constructor_arguments' => [
+            'space_before_parenthesis and inline_constructor_arguments' => [
                 '<?php $z = new class ( static::foo($this->bar())  ,baz() ) {};',
                 '<?php $z = new class   ( static::foo($this->bar())  ,baz() )  {};',
-                ['space_before_parenthesis' => true, 'fix_constructor_arguments' => false],
+                ['space_before_parenthesis' => true, 'inline_constructor_arguments' => false],
             ],
         ];
     }

@@ -45,8 +45,8 @@ Allowed types: ``bool``
 
 Default value: ``false``
 
-``fix_constructor_arguments``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``inline_constructor_arguments``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Whether constructor argument list in anonymous classes should be single line.
 
@@ -154,7 +154,7 @@ With configuration: ``['space_before_parenthesis' => true]``.
 Example #6
 ~~~~~~~~~~
 
-With configuration: ``['fix_constructor_arguments' => true]``.
+With configuration: ``['inline_constructor_arguments' => true]``.
 
 .. code-block:: diff
 
@@ -175,7 +175,7 @@ The rule is part of the following rule sets:
 @PSR12
   Using the `@PSR12 <./../../ruleSets/PSR12.rst>`_ rule set will enable the ``class_definition`` rule with the config below:
 
-  ``['fix_constructor_arguments' => false, 'space_before_parenthesis' => true]``
+  ``['inline_constructor_arguments' => false, 'space_before_parenthesis' => true]``
 
 @PSR2
   Using the `@PSR2 <./../../ruleSets/PSR2.rst>`_ rule set will enable the ``class_definition`` rule with the default config.
