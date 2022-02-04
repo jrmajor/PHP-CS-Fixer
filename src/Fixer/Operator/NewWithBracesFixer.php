@@ -122,6 +122,7 @@ final class NewWithBracesFixer extends AbstractFixer implements ConfigurableFixe
                 [CT::T_BRACE_CLASS_INSTANTIATION_OPEN],
                 [CT::T_BRACE_CLASS_INSTANTIATION_CLOSE],
             ];
+
             if (\defined('T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG')) { // @TODO: drop condition when PHP 8.1+ is required
                 $nextTokenKinds[] = [T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG];
                 $nextTokenKinds[] = [T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG];
@@ -134,10 +135,9 @@ final class NewWithBracesFixer extends AbstractFixer implements ConfigurableFixe
             }
 
             $nextIndex = $tokens->getNextTokenOfKind($index, $nextTokenKinds);
-            $nextToken = $tokens[$nextIndex];
 
             // new anonymous class definition
-            if ($nextToken->isGivenKind(T_CLASS)) {
+            if ($tokens[$nextIndex]->isGivenKind(T_CLASS)) {
                 $nextIndex = $tokens->getNextMeaningfulToken($nextIndex);
 
                 if ($this->configuration['anonymous_class']) {
@@ -150,14 +150,10 @@ final class NewWithBracesFixer extends AbstractFixer implements ConfigurableFixe
             }
 
             // entrance into array index syntax - need to look for exit
-            while ($nextToken->equals('[') || $nextToken->isGivenKind(CT::T_ARRAY_INDEX_CURLY_BRACE_OPEN)) {
-                $nextIndex = $tokens->findBlockEnd(Tokens::detectBlockType($nextToken)['type'], $nextIndex) + 1;
-                $nextToken = $tokens[$nextIndex];
-            }
 
-            // new statement has a gap in it - advance to the next token
-            if ($nextToken->isWhitespace()) {
-                $nextIndex = $tokens->getNextNonWhitespace($nextIndex);
+            while ($tokens[$nextIndex]->equals('[') || $tokens[$nextIndex]->isGivenKind(CT::T_ARRAY_INDEX_CURLY_BRACE_OPEN)) {
+                $nextIndex = $tokens->findBlockEnd(Tokens::detectBlockType($tokens[$nextIndex])['type'], $nextIndex);
+                $nextIndex = $tokens->getNextMeaningfulToken($nextIndex);
             }
 
             if ($this->configuration['named_class']) {
@@ -206,11 +202,11 @@ final class NewWithBracesFixer extends AbstractFixer implements ConfigurableFixe
         $closingIndex = $tokens->getNextMeaningfulToken($index);
 
         // constructor has arguments - braces can not be removed
-        if (null === $closingIndex || !$tokens[$closingIndex]->equals(')')) {
+        if (!$tokens[$closingIndex]->equals(')')) {
             return;
         }
 
-        $tokens->clearAt($closingIndex);
+        $tokens->clearTokenAndMergeSurroundingWhitespace($closingIndex);
         $tokens->clearTokenAndMergeSurroundingWhitespace($index);
     }
 }

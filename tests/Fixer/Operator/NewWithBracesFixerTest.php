@@ -256,6 +256,24 @@ final class NewWithBracesFixerTest extends AbstractFixerTestCase
                 ',
             ],
         ];
+
+        yield [
+            "<?php \$a = new \$b['class']/* */()\r\n\t ;",
+        ];
+
+        yield [
+            "<?php \$a = new \$b['class'] /* */()\r\n\t ;",
+        ];
+
+        yield [
+            "<?php \$a = new \$b['class']()/* */;",
+            "<?php \$a = new \$b['class']/* */;",
+        ];
+
+        yield [
+            "<?php \$a = new \$b['class']() /* */;",
+            "<?php \$a = new \$b['class'] /* */;",
+        ];
     }
 
     /**
@@ -490,6 +508,26 @@ final class NewWithBracesFixerTest extends AbstractFixerTestCase
                 ',
             ],
         ];
+
+        yield [
+            "<?php \$a = new \$b['class']/* */\r\n\t ;",
+            "<?php \$a = new \$b['class']/* */()\r\n\t ;",
+        ];
+
+        yield [
+            "<?php \$a = new \$b['class'] /* */\r\n\t ;",
+            "<?php \$a = new \$b['class'] /* */()\r\n\t ;",
+        ];
+
+        yield [
+            "<?php \$a = new \$b['class']/* */;",
+            "<?php \$a = new \$b['class']()/* */;",
+        ];
+
+        yield [
+            "<?php \$a = new \$b['class'] /* */;",
+            "<?php \$a = new \$b['class']() /* */;",
+        ];
     }
 
     /**
@@ -579,7 +617,7 @@ final class NewWithBracesFixerTest extends AbstractFixerTestCase
                     $a = new class /**/ extends Bar1{};
                     $a = new class  extends Bar2 implements Foo{};
                     $a = new class    extends Bar3 implements Foo, Foo2{};
-                    $a = new class {}?>
+                    $a = new class    {}?>
                 ',
                 '<?php
                     $a = new class() {use SomeTrait;};
@@ -587,7 +625,7 @@ final class NewWithBracesFixerTest extends AbstractFixerTestCase
                     $a = new class() /**/ extends Bar1{};
                     $a = new class()  extends Bar2 implements Foo{};
                     $a = new class()    extends Bar3 implements Foo, Foo2{};
-                    $a = new class() {}?>
+                    $a = new class ( )  {}?>
                 ',
             ],
             [
