@@ -160,6 +160,11 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
                 ['inline_constructor_arguments' => false],
             ],
             [
+                '<?php $a = new class implements Foo {};',
+                "<?php \$a = new\n class    implements Foo {};",
+                ['inline_constructor_arguments' => false],
+            ],
+            [
                 '<?php $a = new class( $this->foo() , bar ( $a) ) {};',
                 "<?php \$a = new\n class  ( \$this->foo() , bar ( \$a) ){};",
                 ['inline_constructor_arguments' => false],
@@ -187,6 +192,16 @@ final class ClassDefinitionFixerTest extends AbstractFixerTestCase
                 ['inline_constructor_arguments' => false],
             ],
             [
+                "<?php \$a = new class(\n\t\$a,\n\t\$b,\n\t\$c,\n\t\$d) implements A, B {};",
+                "<?php \$a = new class(\n\t\$a,\n\t\$b,\n\t\$c,\n\t\$d) implements  A, \t B{};",
+                ['inline_constructor_arguments' => false],
+            ],
+            [
+                "<?php \$a = new class(\n\t\$a,\n\t\$b,\n\t\$c,\n\t\$d) implements A, B {};",
+                "<?php \$a = new   class  (\n\t\$a,\n\t\$b,\n\t\$c,\n\t\$d)    implements  A, \t B{};",
+                ['inline_constructor_arguments' => false],
+            ],
+            [
                 '<?php $a = new class($this->prop, $v[3], 4) {};',
                 '<?php $a = new class(   $this->prop,$v[3],   4)         {};',
             ],
@@ -198,7 +213,7 @@ $instance = new class extends \Foo implements
     \Serializable
 {};',
                 '<?php
-$instance = new class extends \Foo implements
+$instance = new class   extends \Foo  implements
 \ArrayAccess,\Countable,\Serializable{};',
             ],
             'PSR-12 Implements Parenthesis on the next line.' => [
