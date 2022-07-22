@@ -275,7 +275,7 @@ else {
                             }
                         }
 
-                        if (!$this->isCommentForControlSructureContinuation($tokens, $index + 1)) {
+                        if (!$this->isCommentForControlStructureContinuation($tokens, $index + 1)) {
                             $endIndex = $scopes[$currentScope]['end_index'];
 
                             if (!$scopes[$currentScope]['end_index_inclusive']) {
@@ -460,7 +460,7 @@ else {
         return $regularIndent;
     }
 
-    private function isCommentForControlSructureContinuation(Tokens $tokens, int $index): bool
+    private function isCommentForControlStructureContinuation(Tokens $tokens, int $index): bool
     {
         if (!isset($tokens[$index], $tokens[$index + 1])) {
             return false;

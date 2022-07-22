@@ -704,6 +704,17 @@ switch (true) {
 <?php endif; ?>
 ',
         ];
+
+        yield 'multiline properties declaration' => [
+            '<?php
+class Invoice
+{
+    public float
+        $late = .0,
+        $paid = .0,
+        $other = .0;
+}',
+        ];
     }
 
     /**
