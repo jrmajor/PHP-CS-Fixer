@@ -104,7 +104,8 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 30
           command: |
-            composer update --optimize-autoloader --no-interaction --no-progress ${{ matrix.composer-flags }}
+            composer update --no-interaction --no-progress ${{ matrix.composer-flags }}
+            composer dump-autoload --optimize --strict-psr
             composer info -D
 
       - name: Execute migration rules # we want to execute migration rules BEFORE we gonna run tests and self-fixing, so we know that our codebase is future-ready
