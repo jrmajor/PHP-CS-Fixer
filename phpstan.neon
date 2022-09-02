@@ -1,7 +1,8 @@
 includes:
     - dev-tools/vendor/jangregor/phpstan-prophecy/extension.neon
-    - dev-tools/vendor/phpstan/phpstan/conf/bleedingEdge.neon
     - dev-tools/vendor/phpstan/phpstan-phpunit/extension.neon
+    - dev-tools/vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    - dev-tools/vendor/php-standard-library/phpstan-extension/extension.neon
 
 parameters:
     level: 6

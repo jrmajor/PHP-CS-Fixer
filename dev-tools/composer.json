@@ -9,6 +9,7 @@
         "jangregor/phpstan-prophecy": "^1.0",
         "maglnet/composer-require-checker": "3.3.0",
         "mi-schi/phpmd-extension": "^4.3",
+        "php-standard-library/phpstan-extension": "^1.0",
         "phpmd/phpmd": "^2.10.2",
         "phpstan/phpstan": "^1.8",
         "phpstan/phpstan-phpunit": "^1.1"

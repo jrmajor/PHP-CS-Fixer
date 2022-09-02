@@ -33,6 +33,7 @@
         "symfony/stopwatch": "^5.4 || ^6.0"
     },
     "require-dev": {
+        "azjezz/psl": "~1.6.3",
         "justinrainbow/json-schema": "^5.2",
         "keradus/cli-executor": "^1.5",
         "mikey179/vfsstream": "^1.6.10",
