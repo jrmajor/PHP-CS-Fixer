@@ -35,27 +35,23 @@ final class IntegrationCase
     private ?string $inputCode;
 
     /**
-     * Env requirements (possible keys: 'php' or 'php<').
-     *
-     * @var array<string, int>|array{php: int}
+     * @var array{php: int, 'php<': int}
      */
     private array $requirements;
 
     private RuleSet $ruleset;
 
     /**
-     * Settings how to perform the test (possible keys: none in base class, use as extension point for custom IntegrationTestCase).
-     *
-     * @var array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck?: bool}
+     * @var array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck: bool}
      */
     private array $settings;
 
     private string $title;
 
     /**
-     * @param array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck?: bool} $settings
-     * @param array<string, int>|array{php: int}                                                     $requirements
-     * @param array{indent: string, lineEnding: string}                                              $config
+     * @param array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck: bool} $settings
+     * @param array{php: int, 'php<': int}                                                          $requirements
+     * @param array{indent: string, lineEnding: string}                                             $config
      */
     public function __construct(
         string $fileName,
@@ -105,21 +101,16 @@ final class IntegrationCase
         return $this->inputCode;
     }
 
+    /**
+     * @param 'php'|'php<' $name
+     */
     public function getRequirement(string $name): int
     {
-        if (!\array_key_exists($name, $this->requirements)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Unknown requirement key "%s", expected any of "%s".',
-                $name,
-                implode('","', array_keys($this->requirements))
-            ));
-        }
-
         return $this->requirements[$name];
     }
 
     /**
-     * @return array<string, int>|array{php: int}
+     * @return array{php: int, 'php<': int}
      */
     public function getRequirements(): array
     {
@@ -132,7 +123,7 @@ final class IntegrationCase
     }
 
     /**
-     * @return array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck?: bool}
+     * @return array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck: bool}
      */
     public function getSettings(): array
     {

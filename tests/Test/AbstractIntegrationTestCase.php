@@ -198,6 +198,10 @@ abstract class AbstractIntegrationTestCase extends TestCase
             static::markTestSkipped(sprintf('PHP %d (or later) is required for "%s", current "%d".', $case->getRequirement('php'), $case->getFileName(), \PHP_VERSION_ID));
         }
 
+        if (\PHP_VERSION_ID >= $case->getRequirement('php<')) {
+            static::markTestSkipped(sprintf('PHP %d (or lower) is required for "%s", current "%d".', $case->getRequirement('php<'), $case->getFileName(), \PHP_VERSION_ID));
+        }
+
         $input = $case->getInputCode();
         $expected = $case->getExpectedCode();
 

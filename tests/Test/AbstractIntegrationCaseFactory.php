@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace PhpCsFixer\Tests\Test;
 
 use PhpCsFixer\RuleSet\RuleSet;
+use Psl\Json;
+use Psl\Type;
 use Symfony\Component\Finder\SplFileInfo;
 
 /**
@@ -43,23 +45,20 @@ abstract class AbstractIntegrationCaseFactory implements IntegrationCaseFactoryI
                 throw new \InvalidArgumentException('File format is invalid.');
             }
 
-            $match = array_merge(
-                [
-                    'config' => null,
-                    'settings' => null,
-                    'requirements' => null,
-                    'expect' => null,
-                    'input' => null,
-                ],
-                $match
-            );
+            $match = array_merge([
+                'config' => null,
+                'settings' => null,
+                'requirements' => null,
+                'expect' => null,
+                'input' => null,
+            ], $match);
 
             return new IntegrationCase(
                 $file->getRelativePathname(),
                 $this->determineTitle($file, $match['title']),
-                $this->determineSettings($file, $match['settings']),
-                $this->determineRequirements($file, $match['requirements']),
-                $this->determineConfig($file, $match['config']),
+                $this->determineSettings($file, $match['settings'] ?: null),
+                $this->determineRequirements($file, $match['requirements'] ?: null),
+                $this->determineConfig($file, $match['config'] ?: null),
                 $this->determineRuleset($file, $match['ruleset']),
                 $this->determineExpectedCode($file, $match['expect']),
                 $this->determineInputCode($file, $match['input'])
@@ -80,47 +79,33 @@ abstract class AbstractIntegrationCaseFactory implements IntegrationCaseFactoryI
      */
     protected function determineConfig(SplFileInfo $file, ?string $config): array
     {
-        $parsed = $this->parseJson($config, [
-            'indent' => '    ',
-            'lineEnding' => "\n",
-        ]);
+        $parsed = null !== $config ? Json\decode($config) : [];
 
-        if (!\is_string($parsed['indent'])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected string value for "indent", got "%s".',
-                \is_object($parsed['indent']) ? \get_class($parsed['indent']) : \gettype($parsed['indent']).'#'.$parsed['indent']
-            ));
-        }
+        $parsed['indent'] ??= '    ';
+        $parsed['lineEnding'] ??= "\n";
 
-        if (!\is_string($parsed['lineEnding'])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected string value for "lineEnding", got "%s".',
-                \is_object($parsed['lineEnding']) ? \get_class($parsed['lineEnding']) : \gettype($parsed['lineEnding']).'#'.$parsed['lineEnding']
-            ));
-        }
-
-        return $parsed;
+        return Type\shape([
+            'indent' => Type\string(),
+            'lineEnding' => Type\string(),
+        ])->coerce($parsed);
     }
 
     /**
      * Parses the '--REQUIREMENTS--' block of a '.test' file and determines requirements.
      *
-     * @return array<string, int>|array{php: int}
+     * @return array{php: int, 'php<': int}
      */
     protected function determineRequirements(SplFileInfo $file, ?string $config): array
     {
-        $parsed = $this->parseJson($config, [
-            'php' => \PHP_VERSION_ID,
-        ]);
+        $parsed = null !== $config ? Json\decode($config) : [];
 
-        if (!\is_int($parsed['php'])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected int value like 50509 for "php", got "%s".',
-                get_debug_type($parsed['php']).'#'.$parsed['php'],
-            ));
-        }
+        $parsed['php'] ??= \PHP_VERSION_ID;
+        $parsed['php<'] ??= \PHP_VERSION_ID + 100;
 
-        return $parsed;
+        return Type\shape([
+            'php' => Type\int(),
+            'php<' => Type\int(),
+        ])->coerce($parsed);
     }
 
     /**
@@ -128,7 +113,7 @@ abstract class AbstractIntegrationCaseFactory implements IntegrationCaseFactoryI
      */
     protected function determineRuleset(SplFileInfo $file, string $config): RuleSet
     {
-        return new RuleSet($this->parseJson($config));
+        return new RuleSet(Json\decode($config));
     }
 
     /**
@@ -142,40 +127,23 @@ abstract class AbstractIntegrationCaseFactory implements IntegrationCaseFactoryI
     /**
      * Parses the '--SETTINGS--' block of a '.test' file and determines settings.
      *
-     * @return array{checkPriority: bool, deprecations: list<string>}
+     * @return array{checkPriority: bool, deprecations: list<string>, isExplicitPriorityCheck: bool}
      */
     protected function determineSettings(SplFileInfo $file, ?string $config): array
     {
-        $parsed = $this->parseJson($config, [
-            'checkPriority' => true,
-            'deprecations' => [],
-        ]);
+        $parsed = null !== $config ? Json\decode($config) : [];
 
-        if (!\is_bool($parsed['checkPriority'])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected bool value for "checkPriority", got "%s".',
-                \is_object($parsed['checkPriority']) ? \get_class($parsed['checkPriority']) : \gettype($parsed['checkPriority']).'#'.$parsed['checkPriority']
-            ));
-        }
+        $parsed['checkPriority'] ??= true;
+        $parsed['deprecations'] ??= [];
 
-        if (!\is_array($parsed['deprecations'])) {
-            throw new \InvalidArgumentException(sprintf(
-                'Expected array value for "deprecations", got "%s".',
-                \is_object($parsed['deprecations']) ? \get_class($parsed['deprecations']) : \gettype($parsed['deprecations']).'#'.$parsed['deprecations']
-            ));
-        }
+        $parsed = Type\shape([
+            'checkPriority' => Type\bool(),
+            'deprecations' => Type\vec(Type\string()),
+        ])->coerce($parsed);
 
-        foreach ($parsed['deprecations'] as $index => $deprecation) {
-            if (!\is_string($deprecation)) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Expected only string value for "deprecations", got "%s" @ index %d.',
-                    \is_object($deprecation) ? \get_class($deprecation) : \gettype($deprecation).'#'.$deprecation,
-                    $index
-                ));
-            }
-        }
+        $priority = \in_array('priority', explode(\DIRECTORY_SEPARATOR, $file->getRelativePathname()), true);
 
-        return $parsed;
+        return array_merge($parsed, ['isExplicitPriorityCheck' => $priority]);
     }
 
     protected function determineExpectedCode(SplFileInfo $file, ?string $code): string
@@ -206,34 +174,5 @@ abstract class AbstractIntegrationCaseFactory implements IntegrationCaseFactoryI
         }
 
         return null;
-    }
-
-    /**
-     * @param null|array<mixed> $template
-     *
-     * @return array<mixed>
-     */
-    private function parseJson(?string $encoded, array $template = null): array
-    {
-        // content is optional if template is provided
-        if (!$encoded && null !== $template) {
-            $decoded = [];
-        } else {
-            $decoded = json_decode($encoded, true);
-
-            if (JSON_ERROR_NONE !== json_last_error()) {
-                throw new \InvalidArgumentException(sprintf('Malformed JSON: "%s", error: "%s".', $encoded, json_last_error_msg()));
-            }
-        }
-
-        if (null !== $template) {
-            foreach ($template as $index => $value) {
-                if (!\array_key_exists($index, $decoded)) {
-                    $decoded[$index] = $value;
-                }
-            }
-        }
-
-        return $decoded;
     }
 }
