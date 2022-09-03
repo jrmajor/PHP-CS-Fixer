@@ -16,8 +16,8 @@ namespace PhpCsFixer\Tests;
 
 use PhpCsFixer\Tests\Test\AbstractIntegrationTestCase;
 use PhpCsFixer\Tests\Test\IntegrationCase;
+use PhpCsFixer\Tests\Test\IntegrationCaseFactory;
 use PhpCsFixer\Tests\Test\IntegrationCaseFactoryInterface;
-use PhpCsFixer\Tests\Test\InternalIntegrationCaseFactory;
 
 /**
  * Test that parses and runs the fixture '*.test' files found in '/Fixtures/Integration'.
@@ -48,7 +48,7 @@ final class IntegrationTest extends AbstractIntegrationTestCase
 
     protected static function createIntegrationCaseFactory(): IntegrationCaseFactoryInterface
     {
-        return new InternalIntegrationCaseFactory();
+        return new IntegrationCaseFactory();
     }
 
     protected static function assertRevertedOrderFixing(IntegrationCase $case, string $fixedInputCode, string $fixedInputCodeWithReversedFixers): void
