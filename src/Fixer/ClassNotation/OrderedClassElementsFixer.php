@@ -384,7 +384,7 @@ class Example
     /**
      * @return array<string>|string type or array of type and name
      */
-    private function detectElementType(Tokens $tokens, int $index)
+    private function detectElementType(Tokens $tokens, int $index): array|string
     {
         $token = $tokens[$index];
 

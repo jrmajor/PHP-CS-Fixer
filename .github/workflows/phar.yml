@@ -1,0 +1,108 @@
+name: PHAR
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  compile-phar:
+    name: Compile PHAR
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --optimize-autoloader --no-progress
+
+      - name: Install dev dependencies
+        working-directory: dev-tools
+        run: composer install --optimize-autoloader --no-progress
+
+      - name: Downgrade source code
+        working-directory: dev-tools
+        # has to run two times, misses some cases on the first run
+        run: |
+          vendor/bin/rector process --no-diffs --config rector-downgrade.php
+          vendor/bin/rector process --no-diffs --config rector-downgrade.php
+
+      - name: Compile PHAR
+        working-directory: dev-tools
+        run: bin/box.phar compile
+
+      - name: Run PHAR
+        run: dev-tools/tmp/php-cs-fixer.phar --version
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: phar-file
+          path: dev-tools/tmp/php-cs-fixer.phar
+
+  self-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - operating-system: 'ubuntu-20.04'
+            php-version: '7.4'
+            phpdoc-to-type-rules: 'yes' # should be checked on the lowest supported PHP version
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.0'
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.1'
+
+          - operating-system: 'windows-latest'
+            php-version: '8.1'
+            job-description: 'on Windows'
+            FAST_LINT_TEST_CASES: 1
+
+          - operating-system: 'macos-latest'
+            php-version: '8.1'
+            job-description: 'on macOS'
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.2'
+            PHP_CS_FIXER_IGNORE_ENV: 1
+
+    name: Self check on PHP ${{ matrix.php-version }} ${{ matrix.job-description }}
+
+    needs: compile-phar
+
+    runs-on: ${{ matrix.operating-system }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: none
+        env:
+          update: ${{ matrix.php-version == '8.0' }} # force update to 8.0.1+, ref https://github.com/shivammathur/setup-php/issues/394#issuecomment-760461251
+
+      - name: Download PHAR
+        uses: actions/download-artifact@v3
+        with:
+          name: phar-file
+
+      - name: Run PHP CS Fixer with PHPDoc to type rules
+        if: matrix.phpdoc-to-type-rules == 'yes'
+        run: php php-cs-fixer.phar fix --diff --dry-run -v --config .php-cs-fixer.php-lowest.php
+
+      - name: Run PHP CS Fixer
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: ${{ matrix.PHP_CS_FIXER_IGNORE_ENV }}
+          PHP_CS_FIXER_FUTURE_MODE: 1
+        run: php php-cs-fixer.phar fix --diff --dry-run -v

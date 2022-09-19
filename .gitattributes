@@ -1,6 +1,5 @@
 /.* export-ignore
 /benchmark.sh export-ignore
-/box.json.dist export-ignore
 /dev-tools/ export-ignore
 /doc/ export-ignore
 /docker/ export-ignore

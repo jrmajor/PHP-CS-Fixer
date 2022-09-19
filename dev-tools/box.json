@@ -1,0 +1,16 @@
+{
+    "alias": "php-cs-fixer.phar",
+    "banner": false,
+    "base-path": "..",
+    "check-requirements": false,
+    "compactors": [
+        "KevinGH\\Box\\Compactor\\Json",
+        "KevinGH\\Box\\Compactor\\Php",
+        "KevinGH\\Box\\Compactor\\PhpScoper"
+    ],
+    "directories": ["src"],
+    "force-autodiscovery": true,
+    "git-commit": "git-commit",
+    "output": "dev-tools/tmp/php-cs-fixer.phar",
+    "php-scoper": "dev-tools/scoper.inc.php"
+}

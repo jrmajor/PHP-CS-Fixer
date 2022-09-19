@@ -20,10 +20,7 @@ final class FixerOptionBuilder
 
     private string $description;
 
-    /**
-     * @var mixed
-     */
-    private $default;
+    private mixed $default = null;
 
     private bool $isRequired = true;
 

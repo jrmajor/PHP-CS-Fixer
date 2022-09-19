@@ -56,49 +56,77 @@ set_error_handler(static function ($severity, $message, $file, $line) {
     }
 })();
 
+const __PHP_CS_FIXER_RUNNING__ = true;
+
 // load dependencies
 (function () {
-    $require = true;
-    if (class_exists('Phar')) {
-        // Maybe this file is used as phar-stub? Let's try!
+    require_once __DIR__.'/vendor/autoload.php';
+
+    (function () {
+        $unscopedFilesToBeLoaded = [
+            md5('symfony/polyfill-ctype:bootstrap.php') => true,
+            md5('symfony/polyfill-intl-grapheme:bootstrap.php') => true,
+            md5('symfony/polyfill-intl-normalizer:bootstrap.php') => true,
+            md5('symfony/polyfill-mbstring:bootstrap.php') => true,
+            md5('symfony/polyfill-php73:bootstrap.php') => true,
+            md5('symfony/polyfill-php80:bootstrap.php') => true,
+            md5('symfony/polyfill-php81:bootstrap.php') => true,
+        ];
+
+        $loadedUnscopedFiles = array_intersect_key(
+            $unscopedFilesToBeLoaded,
+            $GLOBALS['__composer_autoload_files']
+        );
+
+        if ($loadedUnscopedFiles !== $unscopedFilesToBeLoaded) {
+            exit(1);
+        }
+
+        $GLOBALS['__composer_autoload_files'] = $loadedUnscopedFiles;
+    })();
+
+    // try to load Composer autoloader for the current working directory
+    (function () {
         try {
-            Phar::mapPhar('php-cs-fixer.phar');
+            $composerConfig = file_get_contents(getcwd().'/composer.json');
+            $composerConfig = json_decode($composerConfig, true);
 
-            require_once 'phar://php-cs-fixer.phar/vendor/autoload.php';
-            $require = false;
-        } catch (PharException $e) {
-        }
-    }
-
-    if ($require) {
-        // OK, it's not, let give Composer autoloader a try!
-        $possibleFiles = [__DIR__.'/../../autoload.php', __DIR__.'/../autoload.php', __DIR__.'/vendor/autoload.php'];
-        $file = null;
-        foreach ($possibleFiles as $possibleFile) {
-            if (file_exists($possibleFile)) {
-                $file = $possibleFile;
-
-                break;
-            }
+            $vendorDirName = $composerConfig['config']['vendor-dir'] ?? 'vendor';
+            $vendorDirName = \is_string($vendorDirName) ? $vendorDirName : 'vendor';
+        } catch (\Throwable $e) {
+            $vendorDirName = 'vendor';
         }
 
-        if (null === $file) {
-            throw new RuntimeException('Unable to locate autoload.php file.');
+        $path = getcwd().'/'.$vendorDirName.'/autoload.php';
+
+        if (is_file($path)) {
+            require_once $path;
+        }
+    })();
+
+    // try to load ../../autoload.php, in case PHAR is located in a vendor directory
+    (function (): void {
+        $pharPath = extension_loaded('phar') ? Phar::running(false) : '';
+
+        if ('' === $pharPath) {
+            return;
         }
 
-        require_once $file;
-    }
+        $path = dirname($pharPath).'/../../autoload.php';
+
+        if (is_file($path)) {
+            require_once $path;
+        }
+    })();
 })();
 
 use Composer\XdebugHandler\XdebugHandler;
 use PhpCsFixer\Console\Application;
 
-// Restart if xdebug is loaded, unless the environment variable PHP_CS_FIXER_ALLOW_XDEBUG is set.
+// Restart if Xdebug is loaded, unless the PHP_CS_FIXER_ALLOW_XDEBUG environment variable is set.
 $xdebug = new XdebugHandler('PHP_CS_FIXER');
 $xdebug->check();
 unset($xdebug);
 
 $application = new Application();
 $application->run();
-
-__HALT_COMPILER();

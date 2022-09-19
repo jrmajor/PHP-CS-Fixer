@@ -1,0 +1,129 @@
+name: Tests
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - operating-system: 'ubuntu-20.04'
+            php-version: '7.4'
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.0'
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.1'
+            job-description: 'with migration rules'
+            migration-rules: 'yes' # should be checked on the highest supported PHP version
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.1'
+            job-description: 'with calculating code coverage'
+            calculate-code-coverage: 'yes'
+            phpunit-flags: '--testsuite coverage --exclude-group covers-nothing --coverage-clover build/logs/clover.xml'
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.1'
+            job-description: 'with deployment'
+            execute-deployment: 'yes'
+
+          - operating-system: 'windows-latest'
+            php-version: '8.1'
+            job-description: 'on Windows'
+            FAST_LINT_TEST_CASES: 1
+
+          - operating-system: 'macos-latest'
+            php-version: '8.1'
+            job-description: 'on macOS'
+
+          - operating-system: 'ubuntu-20.04'
+            php-version: '8.2'
+            PHP_CS_FIXER_IGNORE_ENV: 1
+
+    name: PHP ${{ matrix.php-version }} ${{ matrix.job-description }}
+
+    runs-on: ${{ matrix.operating-system }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get code coverage driver
+        uses: actions/github-script@v6
+        id: code-coverage-driver
+        with:
+          script: 'return "${{ matrix.calculate-code-coverage }}" == "yes" ? "pcov" : "none"'
+          result-encoding: string
+
+      - name: Setup PHP for downgrade
+        if: matrix.php-version < 8.0
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.0
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --optimize-autoloader --no-progress
+
+      - name: Install dev dependencies
+        working-directory: dev-tools
+        run: composer install --optimize-autoloader --no-progress
+
+      - name: Downgrade source code
+        if: matrix.php-version < 8.0
+        working-directory: dev-tools
+        # has to run two times, misses some cases on the first run
+        run: |
+          vendor/bin/rector process --no-diffs --config rector-downgrade.php
+          vendor/bin/rector process --no-diffs --config rector-downgrade.php
+
+      - name: Setup matrix PHP version
+        if: matrix.php-version < 8.0
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          coverage: ${{ steps.code-coverage-driver.outputs.result }}
+        env:
+          update: ${{ matrix.php-version == '8.0' }} # force update to 8.0.1+, ref https://github.com/shivammathur/setup-php/issues/394#issuecomment-760461251
+
+      # execute migration rules before running tests, so that we know our codebase is future-ready
+      - name: Run PHP CS Fixer with migration rules
+        if: matrix.migration-rules == 'yes'
+        run: php php-cs-fixer fix --config .php-cs-fixer.php-highest.php -q
+
+      - name: Disable time limit for tests when collecting coverage
+        if: matrix.calculate-code-coverage == 'yes'
+        run: sed 's/enforceTimeLimit="true"/enforceTimeLimit="false"/g' phpunit.xml.dist > phpunit.xml
+
+      - name: Run tests
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: ${{ matrix.PHP_CS_FIXER_IGNORE_ENV }}
+          FAST_LINT_TEST_CASES: ${{ matrix.FAST_LINT_TEST_CASES }}
+        run: vendor/bin/phpunit ${{ matrix.phpunit-flags }}
+
+      - name: Upload coverage results to Coveralls
+        if: matrix.calculate-code-coverage == 'yes'
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: php vendor/bin/php-coveralls --verbose
+
+#      - name: Execute deployment checks
+#        if: matrix.execute-deployment == 'yes'
+#        run: |
+#          ./dev-tools/build.sh
+#          PHP_CS_FIXER_TEST_ALLOW_SKIPPING_SMOKE_TESTS=0 vendor/bin/phpunit tests/Smoke/
+#
+#      - name: Execute deployment post-hook
+#        if: matrix.execute-deployment == 'yes' && startsWith(github.ref, 'refs/tags/v')
+#        env:
+#          TRAVIS_TOKEN: ${{ secrets.TRAVIS_TOKEN }}
+#        run: |
+#          # ensure that deployment is happening only if tag matches version of PHP CS Fixer
+#          test $(php dev-tools/info-extractor.php | jq -r .version.vnumber) == "${GITHUB_REF#refs/tags/}"
+#          # trigger website update
+#          ./dev-tools/trigger-website.sh ${TRAVIS_TOKEN} ${GITHUB_REF#refs/tags/}

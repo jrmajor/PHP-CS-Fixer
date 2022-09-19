@@ -159,12 +159,14 @@ final class DocumentationTest extends TestCase
 
     public function testInstallationDocHasCorrectMinimumVersion(): void
     {
-        $composerJsonContent = file_get_contents(__DIR__.'/../../composer.json');
-        $composerJson = json_decode($composerJsonContent, true);
-        $phpVersion = $composerJson['require']['php'];
-        $minimumVersion = ltrim(substr($phpVersion, 0, strpos($phpVersion, ' ')), '^');
+        $warning = 'PHP needs to be a minimum version of PHP';
 
-        $minimumVersionInformation = sprintf('PHP needs to be a minimum version of PHP %s.', $minimumVersion);
+        $entryFileContent = file_get_contents(__DIR__.'/../../php-cs-fixer');
+        $result = preg_match("/{$warning} (\\d\\.\\d)\\.0/", $entryFileContent, $matches);
+
+        static::assertSame(1, $result);
+
+        $minimumVersionInformation = "{$warning} {$matches[1]}.";
         $installationDocPath = realpath(__DIR__.'/../../doc/installation.rst');
 
         static::assertStringContainsString(

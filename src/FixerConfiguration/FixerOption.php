@@ -16,64 +16,32 @@ namespace PhpCsFixer\FixerConfiguration;
 
 final class FixerOption implements FixerOptionInterface
 {
-    private string $name;
-
-    private string $description;
-
-    private bool $isRequired;
-
-    /**
-     * @var mixed
-     */
-    private $default;
-
-    /**
-     * @var null|list<string>
-     */
-    private $allowedTypes;
-
-    /**
-     * @var null|list<(callable(mixed): bool)|null|scalar>
-     */
-    private $allowedValues;
-
-    /**
-     * @var null|\Closure
-     */
-    private $normalizer;
-
-    /**
-     * @param mixed             $default
-     * @param null|list<string> $allowedTypes
-     * @param null|list<(callable(mixed): bool)|null|scalar> $allowedValues
-     */
     public function __construct(
-        string $name,
-        string $description,
-        bool $isRequired = true,
-        $default = null,
-        ?array $allowedTypes = null,
-        ?array $allowedValues = null,
-        ?\Closure $normalizer = null
+        private string $name,
+        private string $description,
+        private bool $isRequired = true,
+        private mixed $default = null,
+        /**
+         * @var null|list<string>
+         */
+        private ?array $allowedTypes = null,
+        /**
+         * @var null|list<(callable(mixed): bool)|null|scalar>
+         */
+        private ?array $allowedValues = null,
+        private ?\Closure $normalizer = null,
     ) {
         if ($isRequired && null !== $default) {
             throw new \LogicException('Required options cannot have a default value.');
         }
 
         if (null !== $allowedValues) {
-            foreach ($allowedValues as &$allowedValue) {
+            foreach ($this->allowedValues as &$allowedValue) {
                 if ($allowedValue instanceof \Closure) {
                     $allowedValue = $this->unbind($allowedValue);
                 }
             }
         }
-
-        $this->name = $name;
-        $this->description = $description;
-        $this->isRequired = $isRequired;
-        $this->default = $default;
-        $this->allowedTypes = $allowedTypes;
-        $this->allowedValues = $allowedValues;
 
         if (null !== $normalizer) {
             $this->normalizer = $this->unbind($normalizer);
